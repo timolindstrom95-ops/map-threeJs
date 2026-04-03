@@ -44,7 +44,8 @@ const materiel = new THREE.MeshNormalMaterial();
 const imageloader = new THREE.TextureLoader();
 const texture = imageloader.load("texture/color.png");
 texture.colorSpace = THREE.SRGBColorSpace;
-texture.flipY = true;
+texture.flipY = false;
+console.log(texture);
 
 const light = new THREE.AmbientLight(0xffffff, 3);
 scene.add(light);
@@ -66,7 +67,7 @@ loader.load("testmap2.glb", (gltf) => {
   });
 
   console.log(gltf.scene.children[0]);
-  gltf.scene.children[0].scale.setScalar(350);
+  gltf.scene.children[0].scale.setScalar(360);
   gltf.scene.children[0].rotation.y = -Math.PI / 2;
 
   scene.add(gltf.scene);
