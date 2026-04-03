@@ -30,7 +30,7 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(0, 350, -200);
 //camera.position.y = 15;
 //camera.lookAt(new THREE.Vector3(0, 0, 0));
-scene.fog = new THREE.FogExp2(0xcccccc, 0.02);
+
 scene.background = new THREE.Color(0x1e2528);
 
 const renderer = new THREE.WebGLRenderer();
@@ -44,10 +44,14 @@ const materiel = new THREE.MeshNormalMaterial();
 const imageloader = new THREE.TextureLoader();
 const texture = imageloader.load("texture/color.png");
 texture.colorSpace = THREE.SRGBColorSpace;
+texture.flipY = true;
+
+const light = new THREE.AmbientLight(0xffffff, 3);
+scene.add(light);
 
 const imagematerial = new THREE.MeshPhysicalMaterial({
   map: texture,
-  wireframe: true,
+  wireframe: false,
 });
 
 const loader = new GLTFLoader();
@@ -87,7 +91,8 @@ mapControls.maxDistance = 600;
 mapControls.maxPolarAngle = Math.PI / 2;
 mapControls.screenSpacePanning = false;
 mapControls.enableRotate = false;
-mapControls.enableZoom = false;
+mapControls.enableZoom = true;
+mapControls.maxZoom = 10;
 
 //mapControls.pan(1, 1)
 window.addEventListener("wheel", (event) => {
@@ -113,12 +118,12 @@ window.onresize = () => {
 function animate() {
   mapControls.update();
   panOffsetZ += mapControls.target.z - prevTargetZ;
-  //mapControls.target.z = panOffsetZ + scrollProgress * -200 + OFFSET;
+  mapControls.target.z = panOffsetZ + scrollProgress * -200 + OFFSET;
   prevTargetZ = mapControls.target.z;
 
-  //const distance = MIN + scrollProgress * (MAX - MIN);
-  //const direction = camera.position.clone().sub(mapControls.target).normalize();
-  //camera.position.copy(mapControls.target).addScaledVector(direction, distance);
+  const distance = MIN + scrollProgress * (MAX - MIN);
+  const direction = camera.position.clone().sub(mapControls.target).normalize();
+  camera.position.copy(mapControls.target).addScaledVector(direction, distance);
   renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
