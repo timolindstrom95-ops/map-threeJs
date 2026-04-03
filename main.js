@@ -8,6 +8,17 @@ import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
 import { createLimitPan } from "@ocio/three-camera-utils";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
 
+const maxX = 305;
+const minX = -305;
+const maxZ = 305;
+const minZ = -Infinity;
+
+// State
+let positionX;
+let positionZ;
+let phi;
+let theta;
+
 let scrollProgress = 1;
 let OFFSET = 100;
 let MIN = 80;
@@ -31,6 +42,7 @@ camera.position.set(0, 350, -200);
 //camera.position.y = 15;
 //camera.lookAt(new THREE.Vector3(0, 0, 0));
 
+scene.fog = new THREE.Fog(0xcccccc, 80, 20);
 scene.background = new THREE.Color(0x1e2528);
 
 const renderer = new THREE.WebGLRenderer();
@@ -42,6 +54,7 @@ dracoLoader.setDecoderPath("https://www.gstatic.com/draco/v1/decoders/");
 
 const materiel = new THREE.MeshNormalMaterial();
 const imageloader = new THREE.TextureLoader();
+//const texture = imageloader.load("texture/Runeterra_Map.png");
 const texture = imageloader.load("texture/color.png");
 texture.colorSpace = THREE.SRGBColorSpace;
 texture.flipY = false;
@@ -99,6 +112,38 @@ mapControls.maxZoom = 10;
 window.addEventListener("wheel", (event) => {
   scrollProgress += event.deltaY * 0.0001;
   scrollProgress = Math.max(0, Math.min(1, scrollProgress));
+});
+
+mapControls.addEventListener("change", (e) => {
+  const x = mapControls.target.x;
+  const z = mapControls.target.z;
+  let shallWeUpdateAngle = false;
+
+  if (x < minX || x > maxX) {
+    mapControls.target.setX(x < minX ? minX : maxX);
+    camera.position.setX(positionX);
+    shallWeUpdateAngle = true;
+  }
+  if (z < minZ || z > maxZ) {
+    mapControls.target.setZ(z < minZ ? minZ : maxZ);
+    camera.position.setZ(positionZ);
+    shallWeUpdateAngle = true;
+  }
+
+  if (shallWeUpdateAngle) {
+    const distance = camera.position.distanceTo(mapControls.target);
+    camera.position.set(
+      distance * Math.sin(phi) * Math.sin(theta) + mapControls.target.x,
+      distance * Math.cos(phi) + mapControls.target.y,
+      distance * Math.sin(phi) * Math.cos(theta) + mapControls.target.z,
+    );
+  }
+
+  // Updating state
+  positionX = camera.position.x;
+  positionZ = camera.position.z;
+  phi = mapControls.getPolarAngle();
+  theta = mapControls.getAzimuthalAngle();
 });
 //const limitPan = createLimitPan({camera, mapControls, THREE})
 //mapControls.addEventListener('change', e => {
