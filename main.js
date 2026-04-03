@@ -10,8 +10,8 @@ import { OrbitControls } from "three/examples/jsm/Addons.js";
 
 let scrollProgress = 1;
 let OFFSET = 100;
-let MIN = 200;
-let MAX = 600;
+let MIN = 80;
+let MAX = 550;
 let panOffsetZ = 0;
 let prevTargetZ = 0;
 const viewport = {
@@ -23,11 +23,12 @@ const camera = new THREE.PerspectiveCamera(
   40,
   viewport.width / viewport.height,
   0.1,
-  1000,
+  10000,
 );
 
 //camera.position.z = 5
-camera.position.set(0, 200, -200);
+camera.position.set(0, 350, -200);
+//camera.position.y = 15;
 //camera.lookAt(new THREE.Vector3(0, 0, 0));
 scene.fog = new THREE.FogExp2(0xcccccc, 0.02);
 scene.background = new THREE.Color(0x1e2528);
@@ -40,31 +41,38 @@ const dracoLoader = new DRACOLoader();
 dracoLoader.setDecoderPath("https://www.gstatic.com/draco/v1/decoders/");
 
 const materiel = new THREE.MeshNormalMaterial();
-
 const imageloader = new THREE.TextureLoader();
 const texture = imageloader.load("texture/color.png");
 texture.colorSpace = THREE.SRGBColorSpace;
 
-const imagematerial = new THREE.MeshBasicMaterial({
+const imagematerial = new THREE.MeshPhysicalMaterial({
   map: texture,
+  wireframe: true,
 });
+
 const loader = new GLTFLoader();
 
 loader.setDRACOLoader(dracoLoader);
 loader.load("testmap2.glb", (gltf) => {
-  console.log(gltf);
+  //console.log(gltf);
   gltf.scene.traverse((child) => {
     if (child.isMesh) {
-      child.material = imagematerial;
+      child.material = imagematerial; //new THREE.MeshNormalMaterial();
     }
   });
+
   console.log(gltf.scene.children[0]);
-  gltf.scene.children[0].scale.setScalar(250);
+  gltf.scene.children[0].scale.setScalar(350);
   gltf.scene.children[0].rotation.y = -Math.PI / 2;
 
   scene.add(gltf.scene);
   renderer.render(scene, camera);
 });
+
+const gridHelper = new THREE.GridHelper(10, 20);
+const axesHelper = new THREE.AxesHelper(5);
+gridHelper.position.y = -0.5;
+scene.add(gridHelper, axesHelper);
 
 const mapControls = new MapControls(camera, renderer.domElement);
 mapControls.mouseButtons = {
@@ -74,8 +82,8 @@ mapControls.mouseButtons = {
 };
 //console.log(scrollPos)
 
-mapControls.minDistance = 100;
-mapControls.maxDistance = 500;
+mapControls.minDistance = 50;
+mapControls.maxDistance = 600;
 mapControls.maxPolarAngle = Math.PI / 2;
 mapControls.screenSpacePanning = false;
 mapControls.enableRotate = false;
@@ -83,7 +91,7 @@ mapControls.enableZoom = false;
 
 //mapControls.pan(1, 1)
 window.addEventListener("wheel", (event) => {
-  scrollProgress += event.deltaY * 0.001;
+  scrollProgress += event.deltaY * 0.0001;
   scrollProgress = Math.max(0, Math.min(1, scrollProgress));
 });
 //const limitPan = createLimitPan({camera, mapControls, THREE})
@@ -105,12 +113,12 @@ window.onresize = () => {
 function animate() {
   mapControls.update();
   panOffsetZ += mapControls.target.z - prevTargetZ;
-  mapControls.target.z = panOffsetZ + scrollProgress * -200 + OFFSET;
+  //mapControls.target.z = panOffsetZ + scrollProgress * -200 + OFFSET;
   prevTargetZ = mapControls.target.z;
 
-  const distance = MIN + scrollProgress * (MAX - MIN);
-  const direction = camera.position.clone().sub(mapControls.target).normalize();
-  camera.position.copy(mapControls.target).addScaledVector(direction, distance);
+  //const distance = MIN + scrollProgress * (MAX - MIN);
+  //const direction = camera.position.clone().sub(mapControls.target).normalize();
+  //camera.position.copy(mapControls.target).addScaledVector(direction, distance);
   renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
